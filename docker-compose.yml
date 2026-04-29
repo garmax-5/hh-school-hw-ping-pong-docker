@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: pingpong_db
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: always
+    ports:
+      - "6542:5432"
+    environment:
+      POSTGRES_DB: pingpong
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+  django:
+    container_name: pingpong_django
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: pingpong
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+    command: >
+      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+volumes:
+  pg_data:
